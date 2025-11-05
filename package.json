@@ -1,6 +1,6 @@
 {
   "name": "playwright-mcp",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "description": "Playwright integration for ModelContext",
   "type": "module",
   "main": "dist/server.js",
@@ -29,6 +29,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.482.0",
     "playwright": "^1.51.0",
+    "posthog-node": "^5.11.1",
     "prismjs": "^1.30.0",
     "react": "^19.0.0",
     "react-contenteditable": "^3.3.7",
