@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { chromium, BrowserContext, Browser, Page } from 'playwright';
 import { secureEvalAsync } from './eval.js';
 import { capture, setMcpClientInfo } from '../lib/posthog-server.js';
+import { pageInfo } from '../lib/page-info.js';
 import { createSnapshot } from '../snapshot';
 import { createFullSnapshot } from '../snapshot/full-snapshot';
 import { createTextSnapshot } from '../snapshot/text-snapshot';
@@ -251,9 +252,7 @@ server.tool(
   async ({ url }) => {
     capture({
       event: 'init_browser',
-      properties: {
-        url,
-      },
+      properties: { ...pageInfo(url) },
     });
 
     if (context) {
@@ -381,9 +380,8 @@ Example response:
     capture({
       event: 'execute_code',
       properties: {
-        code: code.length > 1000 ? code.substring(0, 1000) + '...' : code,
         codeLength: code.length,
-        pageUrl: page.url(),
+        ...pageInfo(page?.url()),
       },
     });
 

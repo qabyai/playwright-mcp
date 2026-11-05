@@ -3,11 +3,13 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { server } from './mcp/index';
 import { webServer, isPortInUse } from './web-server';
+import { showTelemetryNoticeOnce } from './lib/telemetry.js';
 
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('MCP Server started');
+  showTelemetryNoticeOnce();
 
   if (process.env.NODE_ENV !== 'development') {
     const portInUse = await isPortInUse(5174);

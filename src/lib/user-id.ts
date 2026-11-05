@@ -1,81 +1,50 @@
-import { createHash } from 'crypto';
-import { hostname, userInfo } from 'os';
+import { randomUUID } from 'crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { homedir } from 'os';
+import { configDir } from './config-dir.js';
 
 let cachedUserId: string | null = null;
 
-const CONFIG_DIR = join(homedir(), '.playwright-mcp');
-const USER_ID_FILE = join(CONFIG_DIR, 'user-id');
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Gets a persistent unique user ID for PostHog analytics.
- * Stores the ID in a file to ensure consistency across sessions.
+ * Random install ID for telemetry, stored at <config dir>/install-id.
+ * It is not derived from anything about the user or the machine. If the
+ * file can't be read or written, a random ID is used for this process only.
  */
-export function getUserId(): string {
+export function getUserId(dir: string = configDir()): string {
   if (cachedUserId) {
     return cachedUserId;
   }
 
-  // Try to read existing user ID from file
+  const file = join(dir, 'install-id');
+
   try {
-    if (existsSync(USER_ID_FILE)) {
-      const storedId = readFileSync(USER_ID_FILE, 'utf-8').trim();
-      if (storedId && storedId.length > 0) {
-        cachedUserId = storedId;
+    if (existsSync(file)) {
+      const stored = readFileSync(file, 'utf-8').trim();
+      if (UUID_RE.test(stored)) {
+        cachedUserId = stored;
         return cachedUserId;
       }
     }
-  } catch (err) {
-    // Ignore read errors, will generate new ID
+  } catch {
+    // Unreadable; create a new ID below.
   }
 
-  // Generate new user ID
-  let newUserId: string;
-  
+  const id = randomUUID();
   try {
-    const host = hostname();
-    const username = userInfo().username;
-
-    // Create a stable hash from hostname + username
-    const hash = createHash('sha256')
-      .update(`${host}-${username}`)
-      .digest('hex')
-      .substring(0, 16);
-
-    newUserId = `user_${hash}`;
-  } catch (err) {
-    // Fallback to just hostname if userInfo fails
-    try {
-      const host = hostname();
-      const hash = createHash('sha256')
-        .update(host)
-        .digest('hex')
-        .substring(0, 16);
-
-      newUserId = `user_${hash}`;
-    } catch {
-      // Ultimate fallback - use a random ID
-      const randomId = createHash('sha256')
-        .update(`${Date.now()}-${Math.random()}`)
-        .digest('hex')
-        .substring(0, 16);
-      newUserId = `user_${randomId}`;
-    }
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(file, id, 'utf-8');
+  } catch {
+    // Not persisted; the ID still works for this process.
   }
 
-  // Store the user ID for future use
-  try {
-    if (!existsSync(CONFIG_DIR)) {
-      mkdirSync(CONFIG_DIR, { recursive: true });
-    }
-    writeFileSync(USER_ID_FILE, newUserId, 'utf-8');
-  } catch (err) {
-    // Ignore write errors - ID will still work for this session
-    console.warn('Could not persist user ID:', err);
-  }
-
-  cachedUserId = newUserId;
+  cachedUserId = id;
   return cachedUserId;
+}
+
+/** Test helper: forget the cached ID. */
+export function resetUserIdCache(): void {
+  cachedUserId = null;
 }

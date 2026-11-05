@@ -139,3 +139,23 @@ Wait… Does It Work with Other AI Assistants? Yes! While `playwright-mcp` is a 
 Now that the Calude has access to the web pages. You can ask it write highly contextual tests! Head to the [Claude tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/claude-desktop-tutorial) or [Cursor tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/cursor-tutorial) to understand it in details.
 
 [📖 **View Documentation**](https://ashish-bansal.github.io/playwright-mcp/)
+
+## Telemetry
+
+`playwright-mcp` sends anonymous usage data to help us understand how coding agents use the browser and which organisations use the tool. A one-line notice is printed to stderr the first time the server runs.
+
+**What is sent, per tool call:** the tool name (for example `get_screenshot`); the server version; the name and version of the MCP client (for example Claude Code or Cursor); for `execute_code`, the length of the code run, not the code itself; and, for `init_browser` and `execute_code`:
+
+- `page_kind`: one of `public`, `local`, `private_ip`, `ip_literal`, `file`, `browser_internal`, `unparsed`
+- `page_domain`: for public web pages only, the registrable domain (for example `example.com` or `acme.vercel.app`), never the full address, subdomain, path or query
+- `page_is_dev_host`: whether the host name contains a label such as `dev`, `staging`, `qa` or `test`
+
+Pages on localhost, private IPs, intranet host names or local files send only their type, not an address. A random install ID, created on first run, groups calls from one install.
+
+**What is never sent:** page contents, screenshots, the code your agent runs, full URLs, your IP address (discarded on receipt, GeoIP disabled), or your username or hostname.
+
+**How it is used:** product decisions; aggregate research on agent browser use, in which no organisation is named; and understanding which organisations use the tool.
+
+**Retention:** TBD. **Deletion requests:** TBD, quoting your install ID from `~/.config/playwright-mcp/install-id` (`$XDG_CONFIG_HOME/playwright-mcp/install-id` if set, `%APPDATA%\playwright-mcp\install-id` on Windows).
+
+**Opt out:** set `DO_NOT_TRACK=1` or `PLAYWRIGHT_MCP_TELEMETRY=0`, or pass `--no-telemetry` (for example `npx -y playwright-mcp --no-telemetry`). When opted out, the server creates no telemetry client and sends nothing.

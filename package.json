@@ -1,18 +1,26 @@
 {
   "name": "playwright-mcp",
-  "version": "0.0.19",
+  "version": "0.1.0",
   "description": "Playwright integration for ModelContext",
   "type": "module",
   "main": "dist/server.js",
   "bin": {
     "playwright-mcp": "dist/server.js"
   },
+  "files": [
+    "dist",
+    "src",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "generate-version": "node scripts/generate-version.js",
     "dev": "npm run generate-version && tsup --watch",
     "build": "npm run generate-version && NODE_ENV=production tsup",
     "lint": "eslint .",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "npm run generate-version && vitest run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
@@ -21,6 +29,7 @@
     "lodash": "^4.17.21",
     "playwright": "^1.51.0",
     "posthog-node": "^5.11.1",
+    "tldts": "^7.4.19",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -32,7 +41,8 @@
     "globals": "^15.15.0",
     "tsup": "^8.4.0",
     "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1"
+    "typescript-eslint": "^8.24.1",
+    "vitest": "^3.2.7"
   },
   "keywords": [
     "playwright",
