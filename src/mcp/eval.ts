@@ -1,9 +1,12 @@
 import { Page } from 'playwright';
 import vm from 'vm';
 
-
 // Not super secure, but it's ok for now
-export const secureEvalAsync = async (page: Page, code: string, context = {}) => {
+export const secureEvalAsync = async (
+  page: Page,
+  code: string,
+  context = {}
+) => {
   // Set default options
   const timeout = 20000;
   const filename = 'eval.js';
@@ -55,7 +58,7 @@ export const secureEvalAsync = async (page: Page, code: string, context = {}) =>
       trace: (...args: any[]) => {
         const msg = args.map(arg => String(arg)).join(' ');
         logs.push(`[trace] ${msg}`);
-      }
+      },
     },
 
     // User-provided context
@@ -67,7 +70,7 @@ export const secureEvalAsync = async (page: Page, code: string, context = {}) =>
     require: undefined,
     __dirname: undefined,
     __filename: undefined,
-    Buffer: undefined
+    Buffer: undefined,
   };
 
   try {
@@ -82,16 +85,15 @@ export const secureEvalAsync = async (page: Page, code: string, context = {}) =>
     return {
       result: awaitedResult,
       logs,
-      errors
+      errors,
     };
-
   } catch (error: any) {
     return {
       error: true,
       message: error.message,
       stack: error.stack,
       logs,
-      errors
+      errors,
     };
   }
-}
+};

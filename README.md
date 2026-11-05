@@ -39,7 +39,7 @@ Once installed, playwright-mcp spins up a Playwright-controlled browser and give
 
 #### **Give Your AI the Context It Deserves**
 
-Tired of fixing AI-generated tests? Stop debugging AI's bad guesses—start writing flawless Playwright tests. Use the guide below to install playwright-mcp and let your AI assistant actually help you for once. 
+Tired of fixing AI-generated tests? Stop debugging AI's bad guesses—start writing flawless Playwright tests. Use the guide below to install playwright-mcp and let your AI assistant actually help you for once.
 
 ---
 
@@ -68,12 +68,11 @@ If you're using Cursor, follow these steps to connect `playwright-mcp` like a bo
 3. Select Cursor Settings → Go to the MCP tab
 4. Click "Add new MCP server"
 5. Fill in the following details:
-    
-    ![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)
 
+   ![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)
+   - Name → `playwright-mcp`
+   - Command → `npx -y playwright-mcp`
 
-    - Name → `playwright-mcp`
-    - Command → `npx -y playwright-mcp`
 6. Click "Add", and boom—you're connected! 🚀
 
 Note: If clicking on "Add new MCP server", opens a file(.cursor/mcp.json), Paste the following code and save:
@@ -92,51 +91,51 @@ Note: If clicking on "Add new MCP server", opens a file(.cursor/mcp.json), Paste
 }
 ```
 
-Now Cursor actually understands your web pages. No more random test suggestions based on zero context! Head to the [Claude tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/claude-desktop-tutorial) or [Cursor tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/cursor-tutorial) to understand it in details. 
+Now Cursor actually understands your web pages. No more random test suggestions based on zero context! Head to the [Claude tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/claude-desktop-tutorial) or [Cursor tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/cursor-tutorial) to understand it in details.
 
 ---
 
 ### **Connect It to Claude desktop**
 
-Wait… Does It Work with Other AI Assistants? Yes! While `playwright-mcp` is a match made in heaven for IDEs, you can use it with Claude desktop to write tests as well. 
+Wait… Does It Work with Other AI Assistants? Yes! While `playwright-mcp` is a match made in heaven for IDEs, you can use it with Claude desktop to write tests as well.
 
 1. Install `playwright-mcp` (The Easy Part)
-    1. First things first, fire up your terminal and run:
-    2. `npm install -g playwright-mcp`
+   1. First things first, fire up your terminal and run:
+   2. `npm install -g playwright-mcp`
 2. Hook It Up to Claude Desktop
-    1. Find the Configuration File
-    2. On windows 
-        1. `%APPDATA%\Claude\claude_desktop_config.json`
-    3. On macOS: 
-        1. `~/Library/Application Support/Claude/claude_desktop_config.json`
-    4. Update the config file
-    
-    ```jsx
-    {
-      "mcpServers": {
-        "playwright": {
-          "command": "npx",
-          "args": ["-y", "playwright-mcp"]
-        }
-      }
-    }
-    ```
-    
+   1. Find the Configuration File
+   2. On windows
+      1. `%APPDATA%\Claude\claude_desktop_config.json`
+   3. On macOS:
+      1. `~/Library/Application Support/Claude/claude_desktop_config.json`
+   4. Update the config file
+
+   ```jsx
+   {
+     "mcpServers": {
+       "playwright": {
+         "command": "npx",
+         "args": ["-y", "playwright-mcp"]
+       }
+     }
+   }
+   ```
+
 3. Restart Claude Desktop (Because It's a New Day)
-    1. Close and reopen Claude Desktop to apply the changes.
-4. Verify That It's Working 
-    1. Once everything is set up, let's test if Claude can actually talk to Playwright now.
-    2. Open Claude and ask: "List all available MCP tools."
-    3. If `playwright-mcp` is installed correctly, it should list tools like:
-        1. `get-context`
-        2. `get-full-dom`
-        3. `get-screenshot`
-        4. `execute-code`
-        5. `init-browser`
-        6. `validate-selectors`
-    4. Ask Claude to init browser and a browser should open up after your approval! 
+   1. Close and reopen Claude Desktop to apply the changes.
+4. Verify That It's Working
+   1. Once everything is set up, let's test if Claude can actually talk to Playwright now.
+   2. Open Claude and ask: "List all available MCP tools."
+   3. If `playwright-mcp` is installed correctly, it should list tools like:
+      1. `init-browser` → Initialize browser and navigate to a URL
+      2. `get-interactive-snapshot` → Get focused snapshot of interactive elements (buttons, links, inputs) with annotated screenshot
+      3. `get-full-snapshot` → Get complete page snapshot including all visible content for full context understanding
+      4. `get-text-snapshot` → Extract all text content from the page for reading and content analysis
+      5. `get-screenshot` → Take a simple screenshot of the current page
+      6. `get-full-dom` → Get raw HTML DOM (deprecated - use snapshot tools instead)
+      7. `execute-code` → Run custom Playwright JavaScript code against the page
+   4. Ask Claude to init browser and a browser should open up after your approval!
 
-Now that the Calude has access to the web pages. You can ask it write highly contextual tests! Head to the [Claude tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/claude-desktop-tutorial) or [Cursor tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/cursor-tutorial) to understand it in details. 
-
+Now that the Calude has access to the web pages. You can ask it write highly contextual tests! Head to the [Claude tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/claude-desktop-tutorial) or [Cursor tutorial](https://ashish-bansal.github.io/playwright-mcp/tutorials/cursor-tutorial) to understand it in details.
 
 [📖 **View Documentation**](https://ashish-bansal.github.io/playwright-mcp/)

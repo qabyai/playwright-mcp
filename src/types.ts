@@ -21,9 +21,11 @@ declare global {
     triggerSyncToReact: () => void;
     // for recording
     recordDOM: (dom: string, elementUUID: string) => Promise<void>;
-    recordInput: (dom: string, elementUUID: string, value: string) => Promise<void>;
+    recordInput: (
+      dom: string,
+      elementUUID: string,
+      value: string
+    ) => Promise<void>;
     recordKeyPress: (dom: string, keys: string[]) => Promise<void>;
   }
 }
-
-

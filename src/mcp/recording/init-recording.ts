@@ -5,13 +5,13 @@ import {
   type InputBrowserEvent,
   type KeyPressBrowserEvent,
   type OpenPageBrowserEvent,
-} from './events'
-import type { Page } from 'playwright'
-import { getSnowflakeId } from './snowflake'
+} from './events';
+import type { Page } from 'playwright';
+import { getSnowflakeId } from './snowflake';
 
 export const initRecording = async (
   page: Page,
-  onBrowserEvent: (event: BaseBrowserEvent) => void,
+  onBrowserEvent: (event: BaseBrowserEvent) => void
 ) => {
   page.addInitScript(() => {
     if (window.self !== window.top) {
@@ -19,30 +19,30 @@ export const initRecording = async (
     }
 
     function getDom(): string {
-      const snapshot = document.documentElement.cloneNode(true) as HTMLElement
+      const snapshot = document.documentElement.cloneNode(true) as HTMLElement;
 
       // Handle all elements that need state preservation
-      const originalElements = document.querySelectorAll<HTMLElement>('*')
-      const clonedElements = snapshot.querySelectorAll<HTMLElement>('*')
+      const originalElements = document.querySelectorAll<HTMLElement>('*');
+      const clonedElements = snapshot.querySelectorAll<HTMLElement>('*');
 
       // Restore scroll positions in the clone
       originalElements.forEach((originalElement, index) => {
-        const clonedElement = clonedElements[index]
-        if (!clonedElement) return
+        const clonedElement = clonedElements[index];
+        if (!clonedElement) return;
 
         // Preserve scroll positions as data attributes
         if (originalElement.scrollLeft || originalElement.scrollTop) {
           if (originalElement.scrollLeft) {
             clonedElement.setAttribute(
               'qaby-data-scroll-left',
-              originalElement.scrollLeft.toString(),
-            )
+              originalElement.scrollLeft.toString()
+            );
           }
           if (originalElement.scrollTop) {
             clonedElement.setAttribute(
               'qaby-data-scroll-top',
-              originalElement.scrollTop.toString(),
-            )
+              originalElement.scrollTop.toString()
+            );
           }
         }
 
@@ -53,16 +53,16 @@ export const initRecording = async (
           originalElement instanceof HTMLSelectElement ||
           originalElement.hasAttribute('contenteditable')
         ) {
-          preserveElementState(originalElement, clonedElement)
+          preserveElementState(originalElement, clonedElement);
         }
-      })
+      });
 
-      return snapshot.outerHTML
+      return snapshot.outerHTML;
     }
 
     function preserveElementState(
       original: HTMLElement,
-      cloned: HTMLElement,
+      cloned: HTMLElement
     ): void {
       // Handle contenteditable elements
       if (original.hasAttribute('contenteditable')) {
@@ -73,39 +73,39 @@ export const initRecording = async (
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#39;')
           .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-        cloned.setAttribute('qaby-data-contenteditable', escapedHTML)
+          .replace(/>/g, '&gt;');
+        cloned.setAttribute('qaby-data-contenteditable', escapedHTML);
       }
 
       // Handle form elements
       if (original instanceof HTMLInputElement) {
-        preserveInputState(original, cloned as HTMLInputElement)
+        preserveInputState(original, cloned as HTMLInputElement);
       } else if (original instanceof HTMLTextAreaElement) {
-        preserveTextAreaState(original, cloned as HTMLTextAreaElement)
+        preserveTextAreaState(original, cloned as HTMLTextAreaElement);
       } else if (original instanceof HTMLSelectElement) {
-        preserveSelectState(original, cloned as HTMLSelectElement)
+        preserveSelectState(original, cloned as HTMLSelectElement);
       }
     }
 
     function preserveInputState(
       original: HTMLInputElement,
-      cloned: HTMLInputElement,
+      cloned: HTMLInputElement
     ): void {
       switch (original.type) {
         case 'checkbox':
         case 'radio':
           if (original.checked) {
-            cloned.setAttribute('checked', '')
+            cloned.setAttribute('checked', '');
           } else {
-            cloned.removeAttribute('checked')
+            cloned.removeAttribute('checked');
           }
           if (original.indeterminate) {
-            cloned.setAttribute('qaby-data-indeterminate', 'true')
+            cloned.setAttribute('qaby-data-indeterminate', 'true');
           }
-          break
+          break;
         case 'range':
-          cloned.setAttribute('value', original.value)
-          break
+          cloned.setAttribute('value', original.value);
+          break;
         case 'date':
         case 'datetime-local':
         case 'month':
@@ -114,80 +114,80 @@ export const initRecording = async (
           if (original.valueAsDate) {
             cloned.setAttribute(
               'qaby-data-value-as-date',
-              original.valueAsDate.toISOString(),
-            )
-            cloned.setAttribute('value', original.value)
+              original.valueAsDate.toISOString()
+            );
+            cloned.setAttribute('value', original.value);
           }
-          break
+          break;
         default:
           // For text, email, password, etc.
-          cloned.setAttribute('value', original.value)
+          cloned.setAttribute('value', original.value);
       }
     }
 
     function preserveTextAreaState(
       original: HTMLTextAreaElement,
-      cloned: HTMLTextAreaElement,
+      cloned: HTMLTextAreaElement
     ): void {
-      cloned.innerHTML = original.value
+      cloned.innerHTML = original.value;
     }
 
     function preserveSelectState(
       original: HTMLSelectElement,
-      cloned: HTMLSelectElement,
+      cloned: HTMLSelectElement
     ): void {
       // First remove any existing selected attributes
-      cloned.querySelectorAll('option').forEach((option) => {
-        option.removeAttribute('selected')
-      })
+      cloned.querySelectorAll('option').forEach(option => {
+        option.removeAttribute('selected');
+      });
 
       if (original.multiple) {
         // For multi-select, preserve selected state of each option
-        Array.from(original.selectedOptions).forEach((option) => {
+        Array.from(original.selectedOptions).forEach(option => {
           // Find the corresponding option in cloned select by index
-          const optionIndex = Array.from(original.options).indexOf(option)
+          const optionIndex = Array.from(original.options).indexOf(option);
           // Use querySelector instead of options property
           const clonedOption = cloned.querySelector(
-            `option:nth-child(${optionIndex + 1})`,
-          )
+            `option:nth-child(${optionIndex + 1})`
+          );
           if (clonedOption) {
-            clonedOption.setAttribute('selected', '')
+            clonedOption.setAttribute('selected', '');
           }
-        })
+        });
       } else if (original.selectedIndex >= 0) {
         const clonedOption = cloned.querySelector(
-          `option:nth-child(${original.selectedIndex + 1})`,
-        )
+          `option:nth-child(${original.selectedIndex + 1})`
+        );
         if (clonedOption) {
-          clonedOption.setAttribute('selected', '')
+          clonedOption.setAttribute('selected', '');
         }
       }
     }
 
     function generateUUID(): string {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0
-        const v = c === 'x' ? r : (r & 0x3) | 0x8
-        return v.toString(16)
-      })
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
     }
 
     function addAttributesToNode(node: Node): void {
       if (node.nodeType === window.Node.ELEMENT_NODE) {
-        const element = node as unknown as Element
+        const element = node as unknown as Element;
         if (!element.getAttribute('uuid')) {
-          element.setAttribute('uuid', generateUUID())
+          element.setAttribute('uuid', generateUUID());
         }
         for (const child of node.childNodes) {
-          addAttributesToNode(child)
+          addAttributesToNode(child);
         }
       }
     }
 
     function removeAttributesFromNode(node: Node): void {
       if (node.nodeType === window.Node.ELEMENT_NODE) {
-        const element = node as unknown as Element
-        element.removeAttribute('uuid')
+        const element = node as unknown as Element;
+        element.removeAttribute('uuid');
       }
     }
 
@@ -219,44 +219,44 @@ export const initRecording = async (
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-      const dom = getDom()
+      const dom = getDom();
 
       if (['Enter', 'Escape'].includes(event.key)) {
-        window.recordKeyPress(dom, [event.key])
-        return
+        window.recordKeyPress(dom, [event.key]);
+        return;
       }
 
       if (document.activeElement?.tagName.toLowerCase() === 'input') {
         if (event.key === 'Tab') {
-          window.recordKeyPress(dom, [event.key])
+          window.recordKeyPress(dom, [event.key]);
         }
-        return
+        return;
       }
 
       if (document.activeElement?.tagName.toLowerCase() === 'textarea') {
-        return
+        return;
       }
 
-      const keys: string[] = []
-      if (event.ctrlKey) keys.push('Control')
-      if (event.shiftKey) keys.push('Shift')
-      if (event.altKey) keys.push('Alt')
-      if (event.metaKey) keys.push('Meta')
+      const keys: string[] = [];
+      if (event.ctrlKey) keys.push('Control');
+      if (event.shiftKey) keys.push('Shift');
+      if (event.altKey) keys.push('Alt');
+      if (event.metaKey) keys.push('Meta');
 
       if (!['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
-        keys.push(event.key)
+        keys.push(event.key);
       }
 
       if (keys.includes('Meta') && keys.includes('Tab')) {
-        return
+        return;
       }
 
       if (keys.length === 1 && keys[0] === 'Meta') {
-        return
+        return;
       }
 
       if (keys.length > 0) {
-        window.recordKeyPress(dom, keys)
+        window.recordKeyPress(dom, keys);
       }
     }
 
@@ -269,29 +269,29 @@ export const initRecording = async (
         document.activeElement?.tagName.toLowerCase() !== 'input' &&
         document.activeElement?.tagName.toLowerCase() !== 'textarea'
       ) {
-        return
+        return;
       }
 
-      const dom = getDom()
+      const dom = getDom();
       window.recordInput(
         dom,
         document.activeElement.getAttribute('uuid') as string,
-        (document.activeElement as HTMLInputElement).value,
-      )
+        (document.activeElement as HTMLInputElement).value
+      );
     }
 
-    window.addEventListener('click', handleClick, { capture: true })
-    window.addEventListener('keydown', handleKeyDown, { capture: true })
-    window.addEventListener('keyup', handleKeyUp, { capture: true })
+    window.addEventListener('click', handleClick, { capture: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keyup', handleKeyUp, { capture: true });
 
-    console.log('Recording initialized for window:', window.location.href)
-  })
+    console.log('Recording initialized for window:', window.location.href);
+  });
 
-  let buttonClicked = false
+  let buttonClicked = false;
   await page.exposeFunction(
     'recordDOM',
     async (dom: string, elementUUID: string) => {
-      buttonClicked = true
+      buttonClicked = true;
       const event: ClickBrowserEvent = {
         eventId: await getSnowflakeId(),
         type: BrowserEventType.Click,
@@ -299,10 +299,10 @@ export const initRecording = async (
         elementUUID,
         selectors: [`[uuid="${elementUUID}"]`],
         windowUrl: page.url(),
-      }
-      onBrowserEvent(event)
-    },
-  )
+      };
+      onBrowserEvent(event);
+    }
+  );
 
   await page.exposeFunction(
     'recordInput',
@@ -315,10 +315,10 @@ export const initRecording = async (
         typedText: value,
         selectors: [`[uuid="${elementUUID}"]`],
         windowUrl: page.url(),
-      }
-      onBrowserEvent(event)
-    },
-  )
+      };
+      onBrowserEvent(event);
+    }
+  );
 
   await page.exposeFunction(
     'recordKeyPress',
@@ -329,10 +329,10 @@ export const initRecording = async (
         keys,
         dom,
         windowUrl: page.url(),
-      }
-      onBrowserEvent(event)
-    },
-  )
+      };
+      onBrowserEvent(event);
+    }
+  );
 
   page.on('load', async () => {
     if (!buttonClicked) {
@@ -345,10 +345,10 @@ export const initRecording = async (
         title: '',
         // TODO: Fix dom content here
         dom: '',
-      }
-      onBrowserEvent(event)
+      };
+      onBrowserEvent(event);
     }
 
-    buttonClicked = false
-  })
-}
+    buttonClicked = false;
+  });
+};

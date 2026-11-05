@@ -4,302 +4,121 @@ interface PickingState {
   clickHandler: ((e: MouseEvent) => void) | null;
 }
 
-export const injectToolbox = () => {
-  window.addEventListener('DOMContentLoaded', function() {
+export const injectDiscordButton = () => {
+  window.addEventListener('DOMContentLoaded', function () {
     const inIframe = window.self !== window.top;
     if (inIframe) {
       return;
     }
 
-    // Create sidebar if it doesn't exist
-    if (document.querySelector('#mcp-sidebar')) {
+    // Create Discord button if it doesn't exist
+    if (document.querySelector('#mcp-discord-button')) {
       return;
     }
 
-    const pickingState: PickingState = {
-      activePickingType: null,
-      mouseMoveHandler: null,
-      clickHandler: null
-    };
-
-    const toggleSidebar = (expanded: boolean) => {
-      const sidebar = document.querySelector('#mcp-sidebar') as HTMLElement;
-      const toggleButton = document.querySelector('#mcp-sidebar-toggle-button') as HTMLElement;
-      if (sidebar && toggleButton) {
-        const width = parseInt(sidebar.style.width);
-        sidebar.style.transform = expanded ? 'translateX(0)' : `translateX(${width}px)`;
-        toggleButton.style.right = expanded ? `${width}px` : '0';
-        toggleButton.textContent = expanded ? '⟩' : '⟨';
-        localStorage.setItem('mcp-sidebar-expanded', expanded.toString());
+    const createDiscordButton = () => {
+      // Check if already dismissed
+      if (localStorage.getItem('discord-button-dismissed') === 'true') {
+        return;
       }
-    };
 
-    const mcpStopPicking = () => {
-      // Stop picking
-      if (pickingState.mouseMoveHandler) {
-        document.removeEventListener('mousemove', pickingState.mouseMoveHandler);
-      }
-      if (pickingState.clickHandler) {
-        document.removeEventListener('click', pickingState.clickHandler, true);
-      }
-      // Remove preview overlay if it exists
-      const previewOverlay = document.querySelector('#mcp-highlight-overlay-preview');
-      if (previewOverlay) {
-        previewOverlay.remove();
-      }
-      pickingState.activePickingType = null;
-
-      // Restore sidebar state
-      toggleSidebar(true);
-    };
-
-    const mcpStartPicking = (pickingType: 'DOM' | 'Image') => {
-      pickingState.activePickingType = pickingType;
-
-      // Collapse sidebar when picking starts
-      toggleSidebar(false);
-
-      pickingState.mouseMoveHandler = (e: MouseEvent) => {
-        const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
-        const sidebar = document.querySelector('#mcp-sidebar');
-        const expandButton = document.querySelector('#mcp-sidebar-toggle-button');
-        if (!element ||
-          (sidebar && sidebar.contains(element)) ||
-          (expandButton && expandButton.contains(element)) ||
-          element.closest('[id^="mcp-highlight-overlay"]')) return;
-
-        // Create or update highlight overlay
-        let overlay: HTMLElement | null = document.querySelector('#mcp-highlight-overlay-preview');
-        if (!overlay) {
-          overlay = document.createElement('div');
-          overlay.id = 'mcp-highlight-overlay-preview';
-          overlay.style.cssText = `
-            position: fixed;
-            border: 1px dashed #4CAF50;
-            background: rgba(76, 175, 80, 0.1);
-            pointer-events: none;
-            z-index: 999998;
-            transition: all 0.2s ease;
-          `;
-          document.body.appendChild(overlay);
-        }
-
-        const rect = element.getBoundingClientRect();
-        overlay.style.top = rect.top + 'px';
-        overlay.style.left = rect.left + 'px';
-        overlay.style.width = rect.width + 'px';
-        overlay.style.height = rect.height + 'px';
-      };
-
-      pickingState.clickHandler = async (event: MouseEvent) => {
-        const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
-        const sidebar = document.querySelector('#mcp-sidebar');
-        const expandButton = document.querySelector('#mcp-sidebar-toggle-button');
-        if (!element ||
-          (sidebar && sidebar.contains(element)) ||
-          (expandButton && expandButton.contains(element)) ||
-          element.closest('[id^="mcp-highlight-overlay"]')) return;
-
-        event.stopPropagation();
-        event.preventDefault();
-
-        let message: Message;
-        if (pickingState.activePickingType === 'DOM') {
-          const html = element.outerHTML;
-          message = {
-            type: 'DOM',
-            content: html,
-            windowUrl: window.location.href
-          };
-        } else {
-          const previewOverlay = document.querySelector('#mcp-highlight-overlay-preview') as HTMLElement;
-          if (previewOverlay) {
-            previewOverlay.style.display = 'none';
-          }
-          const screenshotId = `screenshot-${Math.random().toString(36).substring(2)}`;
-          element.setAttribute('data-screenshot-id', screenshotId);
-          const screenshot = await (window as any).takeScreenshot(`[data-screenshot-id="${screenshotId}"]`);
-          element.removeAttribute('data-screenshot-id');
-          if (previewOverlay) {
-            previewOverlay.style.display = 'block';
-          }
-          message = {
-            type: 'Image',
-            content: screenshot,
-            windowUrl: window.location.href
-          };
-        }
-
-        mcpStopPicking();
-        (window as any).onElementPicked(message);
-      };
-
-      document.addEventListener('mousemove', pickingState.mouseMoveHandler);
-      document.addEventListener('click', pickingState.clickHandler, true);
-    };
-
-    // Expose picking functions to window
-    window.mcpStartPicking = mcpStartPicking;
-    window.mcpStopPicking = mcpStopPicking;
-
-    const getSidebarWidth = () => {
-      const defaultWidth = localStorage.getItem('mcp-sidebar-width') || '500';
-      return parseInt(defaultWidth);
-    }
-
-    const createSidebar = () => {
-      const sidebar = document.createElement('div');
-      sidebar.id = 'mcp-sidebar';
-      const defaultWidth = getSidebarWidth();
-      sidebar.style.cssText = `
+      const container = document.createElement('div');
+      container.id = 'mcp-discord-button';
+      container.className = 'mcp-discord-container';
+      container.style.cssText = `
         position: fixed;
-        top: 0;
-        right: 0;
-        width: ${defaultWidth}px;
-        height: 100vh;
-        background: #f5f5f5;
-        border-left: 1px solid rgb(228, 228, 231);
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        transition: transform 0.3s ease;
+        bottom: 16px;
+        right: 16px;
+        z-index: 1000000;
+        max-width: 320px;
       `;
 
-      const iframe = document.createElement('iframe');
-      iframe.name = 'toolbox-frame';
-      iframe.src = 'http://localhost:5174/';
-      iframe.style.cssText = `
-        width: 100%;
-        height: 100%;
-        border: none;
+      container.innerHTML = `
+        <div class="mcp-discord-card" style="
+          background: linear-gradient(to right, #4f46e5, #7c3aed);
+          color: white;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+          transition: all 200ms ease;
+          position: relative;
+        ">
+          <button class="mcp-discord-close" style="
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 200ms;
+          ">×</button>
+          <a href="https://discord.gg/Z6VpTav33k" target="_blank" rel="noopener noreferrer" style="
+            display: block;
+            padding: 16px;
+            color: white;
+            text-decoration: none;
+          ">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+              <svg style="width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+              </svg>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">
+                  🎉 Join Discord Community
+                </div>
+                <div style="font-size: 12px; opacity: 0.95; line-height: 1.4;">
+                  <div style="margin-bottom: 2px;">💎 <span style="font-weight: 600;">Get Premium FREE</span></div>
+                  <div style="margin-bottom: 2px;">🐛 Debug help & tutorials</div>
+                  <div>🤝 Share workflows & tips</div>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
       `;
 
-      // Add resize handle
-      const resizeHandle = document.createElement('div');
-      resizeHandle.id = 'mcp-resize-handle';
-      resizeHandle.style.cssText = `
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 4px;
-        height: 100%;
-        cursor: ew-resize;
-        background: transparent;
-      `;
+      const closeButton = container.querySelector(
+        '.mcp-discord-close'
+      ) as HTMLElement;
+      const card = container.querySelector('.mcp-discord-card') as HTMLElement;
 
-      let isResizing = false;
-      let lastX = 0;
-      const originalProperties: Record<string, string> = {}
-
-      // Function to start resize
-      const startResize = (e: MouseEvent) => {
-        isResizing = true;
-        lastX = e.clientX;
-
-        // Add an overlay over the iframe while resizing to prevent mouse events going to the iframe
-        const overlay = document.createElement('div');
-        overlay.className = 'resize-overlay';
-        overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:1000;';
-        sidebar.appendChild(overlay);
-
-        // Add resize event listeners to document
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
-
-        // Disable text selection during resize
-        originalProperties.bodyUserSelect = document.body.style.userSelect;
-        document.body.style.userSelect = 'none';
-        const toggleButton = document.querySelector('#mcp-sidebar-toggle-button') as HTMLElement;
-        if (toggleButton) {
-          originalProperties.toggleButtonTransition = toggleButton.style.transition;
-          toggleButton.style.transition = '';
-        }
-      };
-
-      // Function to handle resize
-      const resize = (e: MouseEvent) => {
-        if (!isResizing) return;
-
-        const deltaX = lastX - e.clientX;
-        const newWidth = Math.min(
-          Math.max(400, sidebar.offsetWidth + deltaX),
-          window.innerWidth * 0.8
-        );
-
-        sidebar.style.width = `${newWidth}px`;
-        const toggleButton = document.querySelector('#mcp-sidebar-toggle-button') as HTMLElement;
-        if (toggleButton) {
-          toggleButton.style.right = `${newWidth}px`;
-        }
-        localStorage.setItem('mcp-sidebar-width', newWidth.toString());
-        lastX = e.clientX;
-      };
-
-      // Function to stop resize
-      const stopResize = () => {
-        if (!isResizing) return;
-        isResizing = false;
-
-        // Remove the overlay
-        const overlay = sidebar.querySelector('.resize-overlay');
-        if (overlay) sidebar.removeChild(overlay);
-
-        // Remove event listeners
-        document.removeEventListener('mousemove', resize);
-        document.removeEventListener('mouseup', stopResize);
-
-        // Re-enable text selection
-        document.body.style.userSelect = originalProperties.bodyUserSelect;
-        const toggleButton = document.querySelector('#mcp-sidebar-toggle-button') as HTMLElement;
-        if (toggleButton) {
-          toggleButton.style.transition = originalProperties.toggleButtonTransition;
-        }
-      };
-
-      resizeHandle.addEventListener('mousedown', startResize);
-
-      sidebar.appendChild(resizeHandle);
-      sidebar.appendChild(iframe);
-      document.body.appendChild(sidebar);
-    }
-
-    const createSidebarToggleButton = () => {
-      const toggleButton = document.createElement('button');
-      toggleButton.id = 'mcp-sidebar-toggle-button';
-      toggleButton.textContent = '⟩';
-      toggleButton.setAttribute('data-skip-recording', 'true');
-      const sidebarWidth = getSidebarWidth();
-      toggleButton.style.cssText = `
-        position: fixed;
-        right: ${sidebarWidth}px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #f5f5f5;
-        border: 1px solid rgb(228, 228, 231);
-        border-right: none;
-        border-radius: 4px 0 0 4px;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 8px;
-        color: rgb(17, 24, 39);
-        z-index: 999999;
-        transition: right 0.3s ease;
-      `;
-      document.body.appendChild(toggleButton);
-
-      let isExpanded = localStorage.getItem('mcp-sidebar-expanded') !== 'false';
-      if (!isExpanded) {
-        toggleSidebar(false);
-      }
-
-      toggleButton.addEventListener('click', () => {
-        isExpanded = !isExpanded;
-        toggleSidebar(isExpanded);
+      // Hover effects
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'scale(1.05)';
+        card.style.boxShadow = '0 15px 35px rgba(79, 70, 229, 0.4)';
       });
-    }
 
-    createSidebar();
-    createSidebarToggleButton();
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'scale(1)';
+        card.style.boxShadow = '0 10px 25px rgba(79, 70, 229, 0.3)';
+      });
+
+      closeButton.addEventListener('mouseenter', () => {
+        closeButton.style.background = '#374151';
+      });
+
+      closeButton.addEventListener('mouseleave', () => {
+        closeButton.style.background = '#6b7280';
+      });
+
+      closeButton.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.remove();
+        localStorage.setItem('discord-button-dismissed', 'true');
+      });
+
+      document.body.appendChild(container);
+    };
+
+    createDiscordButton();
   });
-}
+};

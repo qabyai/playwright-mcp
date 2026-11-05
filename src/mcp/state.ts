@@ -1,4 +1,4 @@
-import type { Page } from "playwright";
+import type { Page } from 'playwright';
 type PickingType = 'DOM' | 'Image';
 
 let globalState = {
@@ -9,7 +9,7 @@ let globalState = {
     let title = await page.title();
     return title
 }` as string,
-}
+};
 
 async function initState(page: Page) {
   // function to notify Node.js from React
@@ -21,9 +21,9 @@ async function initState(page: Page) {
     updateState(page, getState());
   });
 
-  await page.addInitScript((state) => {
+  await page.addInitScript(state => {
     if (window.globalState) {
-      return
+      return;
     }
 
     window.globalState = state;
@@ -45,7 +45,7 @@ async function syncToReact(page: Page, state: typeof globalState) {
   }
 
   try {
-    await toolboxFrame.evaluate((state) => {
+    await toolboxFrame.evaluate(state => {
       window.globalState = state;
       window.notifyStateSubscribers();
     }, state);
@@ -56,11 +56,11 @@ async function syncToReact(page: Page, state: typeof globalState) {
 
 const getState = () => {
   return structuredClone(globalState);
-}
+};
 
 const updateState = (page: Page, state: typeof globalState) => {
   globalState = structuredClone(state);
   syncToReact(page, state);
-}
+};
 
 export { initState, getState, updateState, type Message };

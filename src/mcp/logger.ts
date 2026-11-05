@@ -1,40 +1,40 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class Logger {
-  private level: LogLevel
+  private level: LogLevel;
 
   constructor(level: LogLevel = 'info') {
-    this.level = level
+    this.level = level;
   }
 
   private shouldLog(messageLevel: LogLevel): boolean {
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
-    return levels.indexOf(messageLevel) >= levels.indexOf(this.level)
+    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
+    return levels.indexOf(messageLevel) >= levels.indexOf(this.level);
   }
 
   private log(level: LogLevel, ...args: any[]): void {
     if (this.shouldLog(level)) {
-      console[level](...args)
+      console[level](...args);
     }
   }
 
   debug(...args: any[]): void {
-    this.log('debug', ...args)
+    this.log('debug', ...args);
   }
 
   info(...args: any[]): void {
-    this.log('info', ...args)
+    this.log('info', ...args);
   }
 
   warn(...args: any[]): void {
-    this.log('warn', ...args)
+    this.log('warn', ...args);
   }
 
   error(...args: any[]): void {
-    this.log('error', ...args)
+    this.log('error', ...args);
   }
 }
 
-const logger = new Logger()
+const logger = new Logger();
 
-export { logger, Logger }
+export { logger, Logger };
