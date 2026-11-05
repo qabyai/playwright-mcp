@@ -2,3 +2,4 @@ node_modules
 build
 .npmrc
 dist
+src/version.ts

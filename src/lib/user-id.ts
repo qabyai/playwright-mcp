@@ -1,44 +1,50 @@
-import { createHash } from 'crypto';
-import { hostname, userInfo } from 'os';
+import { randomUUID } from 'crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
+import { configDir } from './config-dir.js';
 
 let cachedUserId: string | null = null;
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Gets a unique user ID for PostHog analytics based on machine hostname and username.
- * This is deterministic and requires no file system permissions.
+ * Random install ID for telemetry, stored at <config dir>/install-id.
+ * It is not derived from anything about the user or the machine. If the
+ * file can't be read or written, a random ID is used for this process only.
  */
-export function getUserId(): string {
+export function getUserId(dir: string = configDir()): string {
   if (cachedUserId) {
     return cachedUserId;
   }
 
+  const file = join(dir, 'install-id');
+
   try {
-    const host = hostname();
-    const username = userInfo().username;
-
-    // Create a stable hash from hostname + username
-    const hash = createHash('sha256')
-      .update(`${host}-${username}`)
-      .digest('hex')
-      .substring(0, 16);
-
-    cachedUserId = `user_${hash}`;
-    return cachedUserId;
-  } catch (err) {
-    // Fallback to just hostname if userInfo fails
-    try {
-      const host = hostname();
-      const hash = createHash('sha256')
-        .update(host)
-        .digest('hex')
-        .substring(0, 16);
-
-      cachedUserId = `user_${hash}`;
-      return cachedUserId;
-    } catch {
-      // Ultimate fallback - use a session-based ID
-      cachedUserId = `user_${Date.now().toString(36)}`;
-      return cachedUserId;
+    if (existsSync(file)) {
+      const stored = readFileSync(file, 'utf-8').trim();
+      if (UUID_RE.test(stored)) {
+        cachedUserId = stored;
+        return cachedUserId;
+      }
     }
+  } catch {
+    // Unreadable; create a new ID below.
   }
+
+  const id = randomUUID();
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(file, id, 'utf-8');
+  } catch {
+    // Not persisted; the ID still works for this process.
+  }
+
+  cachedUserId = id;
+  return cachedUserId;
+}
+
+/** Test helper: forget the cached ID. */
+export function resetUserIdCache(): void {
+  cachedUserId = null;
 }

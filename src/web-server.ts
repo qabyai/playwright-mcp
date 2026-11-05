@@ -15,8 +15,9 @@ const SERVE_DIR = path.join(__dirname, 'ui'); // Change 'public' to your desired
 
 // Helper function to check if port is in use
 async function isPortInUse(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const tester = net.createServer()
+  return new Promise(resolve => {
+    const tester = net
+      .createServer()
       .once('error', () => resolve(true))
       .once('listening', () => {
         tester.once('close', () => resolve(false));
